@@ -260,7 +260,7 @@ struct msm_camera_device_platform_data msm_camera_csi_device_data[] = {
 #ifdef CONFIG_MSM_CAMERA_FLASH
 int flashlight_control(int mode)
 {
-#ifdef CONFIG_FLASHLIGHT_AAT1271
+#ifdef CONFIG_FLASHLIGHT_AAT
 	return aat1271_flashlight_control(mode);
 #else
 	return 0;
@@ -336,24 +336,24 @@ static int camera_sensor_power_disable(struct regulator *sensor_power)
 }
 
 static uint32_t camera_off_gpio_table[] = {
-	GPIO_CFG(PYRAMID_GPIO_CAM1_RSTz, 0, GPIO_CFG_OUTPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),
-	GPIO_CFG(PYRAMID_GPIO_CAM2_RSTz, 0, GPIO_CFG_OUTPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),
-	GPIO_CFG(PYRAMID_GPIO_CAM2_PWDN, 0, GPIO_CFG_OUTPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),
-	GPIO_CFG(PYRAMID_GPIO_CAM_MCLK, 0, GPIO_CFG_OUTPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_16MA),
+	GPIO_CFG(PYRAMID_CAM1_RSTz, 0, GPIO_CFG_OUTPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),
+	GPIO_CFG(PYRAMID_CAM2_RSTz, 0, GPIO_CFG_OUTPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),
+	GPIO_CFG(PYRAMID_CAM2_PWDN, 0, GPIO_CFG_OUTPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),
+	GPIO_CFG(PYRAMID_CAM_MCLK, 0, GPIO_CFG_OUTPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_16MA),
 	GPIO_CFG(PYRAMID_CAM_I2C_SDA, 0, GPIO_CFG_OUTPUT, GPIO_CFG_PULL_UP, GPIO_CFG_4MA),
 	GPIO_CFG(PYRAMID_CAM_I2C_SCL, 0, GPIO_CFG_OUTPUT, GPIO_CFG_PULL_UP, GPIO_CFG_8MA),
-	GPIO_CFG(PYRAMID_GPIO_MCLK_SWITCH, 0, GPIO_CFG_OUTPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),
+	GPIO_CFG(PYRAMID_MCLK_SWITCH, 0, GPIO_CFG_OUTPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),
 	GPIO_CFG(PYRAMID_CAM_CAM1_ID, 0, GPIO_CFG_OUTPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),
 };
 
 static uint32_t camera_on_gpio_table[] = {
 	GPIO_CFG(PYRAMID_CAM_I2C_SDA, 1, GPIO_CFG_OUTPUT, GPIO_CFG_PULL_UP, GPIO_CFG_4MA),
 	GPIO_CFG(PYRAMID_CAM_I2C_SCL, 1, GPIO_CFG_OUTPUT, GPIO_CFG_PULL_UP, GPIO_CFG_8MA),
-	GPIO_CFG(PYRAMID_GPIO_CAM_MCLK, 1, GPIO_CFG_OUTPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_16MA),
-	GPIO_CFG(PYRAMID_GPIO_CAM1_RSTz, 0, GPIO_CFG_OUTPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),
-	GPIO_CFG(PYRAMID_GPIO_CAM2_RSTz, 0, GPIO_CFG_OUTPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),
-	GPIO_CFG(PYRAMID_GPIO_CAM2_PWDN, 0, GPIO_CFG_OUTPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),
-	GPIO_CFG(PYRAMID_GPIO_MCLK_SWITCH, 0, GPIO_CFG_OUTPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),
+	GPIO_CFG(PYRAMID_CAM_MCLK, 1, GPIO_CFG_OUTPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_16MA),
+	GPIO_CFG(PYRAMID_CAM1_RSTz, 0, GPIO_CFG_OUTPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),
+	GPIO_CFG(PYRAMID_CAM2_RSTz, 0, GPIO_CFG_OUTPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),
+	GPIO_CFG(PYRAMID_CAM2_PWDN, 0, GPIO_CFG_OUTPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),
+	GPIO_CFG(PYRAMID_MCLK_SWITCH, 0, GPIO_CFG_OUTPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),
 	GPIO_CFG(PYRAMID_CAM_CAM1_ID, 0, GPIO_CFG_OUTPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),
 };
 
@@ -561,7 +561,7 @@ static struct i2c_board_info s5k3h1gx_actuator_i2c_info = {
 static struct msm_actuator_info s5k3h1gx_actuator_info = {
 	.board_info     = &s5k3h1gx_actuator_i2c_info,
 	.bus_id         = MSM_GSBI4_QUP_I2C_BUS_ID,
-	.vcm_pwd        = PYRAMID_GPIO_CAM_VCM_PD,
+	.vcm_pwd        = PYRAMID_CAM_VCM_PD,
 };
 #endif
 
@@ -569,7 +569,7 @@ static struct msm_camera_sensor_platform_info sensor_s5k3h1gx_board_info = {
 	.mount_angle = 90,
 	.mirror_flip = CAMERA_SENSOR_MIRROR_FLIP,
 	.sensor_reset_enable = 1,
-	.sensor_reset	= PYRAMID_GPIO_CAM1_RSTz,
+	.sensor_reset	= PYRAMID_CAM1_RSTz,
 };
 
 static struct camera_flash_cfg msm_camera_sensor_s5k3h1gx_flash_cfg = {
@@ -641,14 +641,14 @@ static int pyramid_mt9v113_vreg_on(void)
 
 	pyramid_config_camera_on_gpios();
 
-	rc = gpio_request(PYRAMID_GPIO_MCLK_SWITCH, "CAM_SEL");
+	rc = gpio_request(PYRAMID_MCLK_SWITCH, "CAM_SEL");
 	if (rc < 0)
 	{
-		pr_err("[CAM] GPIO (%d) request fail\n", PYRAMID_GPIO_MCLK_SWITCH);
+		pr_err("[CAM] GPIO (%d) request fail\n", PYRAMID_MCLK_SWITCH);
 		goto init_fail;
 	}
-	gpio_direction_output(PYRAMID_GPIO_MCLK_SWITCH, 1);
-	gpio_free(PYRAMID_GPIO_MCLK_SWITCH);
+	gpio_direction_output(PYRAMID_MCLK_SWITCH, 1);
+	gpio_free(PYRAMID_MCLK_SWITCH);
 
 init_fail:
 	return rc;
@@ -694,14 +694,14 @@ static int pyramid_mt9v113_vreg_off(void)
 	pyramid_config_camera_off_gpios();
 
 	pr_info("[CAM] Doing clk switch to sleep state\n");
-	rc = gpio_request(PYRAMID_GPIO_MCLK_SWITCH, "CAM_SEL");
+	rc = gpio_request(PYRAMID_MCLK_SWITCH, "CAM_SEL");
 	if (rc < 0)
 	{
-		pr_err("[CAM] GPIO (%d) request fail\n", PYRAMID_GPIO_MCLK_SWITCH);
+		pr_err("[CAM] GPIO (%d) request fail\n", PYRAMID_MCLK_SWITCH);
 		goto init_fail;
 	}
-	gpio_direction_output(PYRAMID_GPIO_MCLK_SWITCH, 0);
-	gpio_free(PYRAMID_GPIO_MCLK_SWITCH);
+	gpio_direction_output(PYRAMID_MCLK_SWITCH, 0);
+	gpio_free(PYRAMID_MCLK_SWITCH);
 
 init_fail:
 		return rc;
@@ -711,7 +711,7 @@ static struct msm_camera_sensor_platform_info sensor_mt9v113_board_info = {
 	.mount_angle = 270,
 	.mirror_flip = CAMERA_SENSOR_NONE,
 	.sensor_reset_enable = 1,
-	.sensor_reset = PYRAMID_GPIO_CAM2_RSTz,
+	.sensor_reset = PYRAMID_CAM2_RSTz,
 };
 
 static struct msm_camera_sensor_flash_data flash_mt9v113 = {
@@ -720,7 +720,7 @@ static struct msm_camera_sensor_flash_data flash_mt9v113 = {
 
 static struct msm_camera_sensor_info msm_camera_sensor_mt9v113_data = {
 	.sensor_name	= "mt9v113",
-	.sensor_reset	= PYRAMID_GPIO_CAM2_RSTz,
+	.sensor_reset	= PYRAMID_CAM2_RSTz,
 	.camera_power_on = pyramid_mt9v113_vreg_on,
 	.camera_power_off = pyramid_mt9v113_vreg_off,
 	.pdata	= &msm_camera_csi_device_data[1],
