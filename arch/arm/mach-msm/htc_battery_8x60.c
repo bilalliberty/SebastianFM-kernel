@@ -315,12 +315,16 @@ static void cable_status_notifier_func(enum usb_connect_type online)
 		/* If forced fast charge is enabled "always" or if no USB device detected, go AC */
 		if ((force_fast_charge == FAST_CHARGE_FORCE_AC) ||
 		    (force_fast_charge == FAST_CHARGE_FORCE_AC_IF_NO_USB &&
-                     USB_peripheral_detected == USB_ACC_NOT_DETECTED        )) {
+       	             USB_peripheral_detected == USB_ACC_NOT_DETECTED        )) {
 			BATT_LOG("cable USB forced to AC");
-			htc_batt_info.rep.charging_source = CHARGER_AC;
-			radio_set_cable_status(CHARGER_AC);
+			is_fast_charge_forced = FAST_CHARGE_FORCED;
+			current_charge_mode = CURRENT_CHARGE_MODE_AC;
+		htc_batt_info.rep.charging_source = CHARGER_AC;
+		radio_set_cable_status(CHARGER_AC);
 		} else {
 			BATT_LOG("cable USB not forced to AC");
+			is_fast_charge_forced = FAST_CHARGE_NOT_FORCED;
+			current_charge_mode = CURRENT_CHARGE_MODE_USB;
 			htc_batt_info.rep.charging_source = CHARGER_USB;
 			radio_set_cable_status(CHARGER_USB);
 		}
@@ -736,13 +740,6 @@ static long htc_batt_ioctl(struct file *filp,
 			break;
 		}
 		mutex_unlock(&htc_batt_info.info_lock);
-
-#ifdef CONFIG_MACH_VILLEC2
-	if(htc_batt_info.rep.batt_id == 3)
-		tps_set_hv_battery(1);
-	else
-		tps_set_hv_battery(0);
-#endif
 
 		BATT_LOG("ioctl: battery level update: %u",
 			htc_batt_info.rep.level);

@@ -47,6 +47,9 @@
 #include <mach/msm_bus.h>
 #include <mach/rpm-regulator.h>
 #include <mach/cable_detect.h>
+#ifdef CONFIG_FORCE_FAST_CHARGE
+#include <linux/fastchg.h>
+#endif
 #include <mach/board.h>
 #include <mach/board_htc.h>
 
@@ -676,6 +679,11 @@ static int msm_otg_reset(struct usb_phy *phy)
 	u32 val = 0;
 	u32 ulpi_val = 0;
 	USBH_INFO("%s\n", __func__);
+
+
+#ifdef CONFIG_FORCE_FAST_CHARGE
+	USB_porttype_detected = NO_USB_DETECTED; /* No USB plugged, clear fast charge detected port value */
+#endif
 
 #ifdef CONFIG_FORCE_FAST_CHARGE
 	USB_porttype_detected = NO_USB_DETECTED; /* No USB plugged, clear fast charge detected port value */
@@ -2107,7 +2115,8 @@ static void msm_chg_detect_work(struct work_struct *w)
 						break;
 		}
 #endif
-		queue_work(system_nrt_wq, &motg->sm_work);
+		schedule_work(&motg->sm_work);
+
 		queue_work(motg->usb_wq, &motg->notifier_work);
 		return;
 	default:
