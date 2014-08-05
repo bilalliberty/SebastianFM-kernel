@@ -9,6 +9,15 @@ config ARCH_MSM7X01A
 	select CPU_V6
 	select GPIO_MSM_V1
 	select MSM_REMOTE_SPINLOCK_SWP
+	
+config FORCE_FAST_CHARGE
+	bool "Force AC charge mode at will"
+	default y
+	help
+		A simple sysfs interface to force adapters that
+		are detected as USB to charge as AC.
+
+ 
 
 config ARCH_MSM7X25
 	bool "MSM7x25"
@@ -2633,6 +2642,13 @@ config SENSE_4_PLUS
 	default y
 	help
 	  Support for SENSE 4 PLUS.
+	  
+config FORCE_FAST_CHARGE
+	bool "Force AC charge mode at will"
+	default y
+	help
+		A simple sysfs interface to force adapters that
+		are detected as USB to charge as AC
 
 config MSM_NONSMD_PACKET_FILTER
 	bool "Non-SMD based Packet Filter"

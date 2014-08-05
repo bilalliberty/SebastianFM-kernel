@@ -1,0 +1,15 @@
+--- arch/arm/mach-msm/Kconfig
++++ arch/arm/mach-msm/Kconfig
+@@ -2594,5 +2594,12 @@
+ 	help
+ 	  Support for SENSE 4 PLUS.
+ 
++config FORCE_FAST_CHARGE
++	bool "Force AC charge mode at will"
++	default y
++	help
++		A simple sysfs interface to force adapters that
++		are detected as USB to charge as AC.
++
+ endif
+ 

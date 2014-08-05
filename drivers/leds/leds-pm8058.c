@@ -28,6 +28,10 @@
 #include <mach/htc_headset_misc.h>
 #endif
 
+#ifdef CONFIG_TOUCHSCREEN_CYPRESS_SWEEP2WAKE
+#include <linux/cy8c_tma_ts.h>
+#endif
+
 #ifdef CONFIG_HTC_HEADSET_MISC
 #define charming_led_enable(enable) headset_indicator_enable(enable)
 #else
@@ -35,11 +39,11 @@
 #endif
 
 #define LED_DBG_LOG(fmt, ...) \
-		({ if (0) printk(KERN_DEBUG "[LED] " fmt, ##__VA_ARGS__); })
+		printk(KERN_DEBUG "[LED]" fmt, ##__VA_ARGS__)
 #define LED_INFO_LOG(fmt, ...) \
-		printk(KERN_INFO "[LED] " fmt, ##__VA_ARGS__)
+		printk(KERN_INFO "[LED]" fmt, ##__VA_ARGS__)
 #define LED_ERR_LOG(fmt, ...) \
-		printk(KERN_ERR "[LED][ERR] " fmt, ##__VA_ARGS__)
+		printk(KERN_ERR "[LED][ERR]" fmt, ##__VA_ARGS__)
 
 static struct workqueue_struct *g_led_work_queue;
 static int duties[64];
@@ -170,7 +174,7 @@ static void pm8058_pwm_led_brightness_set(struct led_classdev *led_cdev,
 
 	brightness = (brightness > LED_FULL) ? LED_FULL : brightness;
 	brightness = (brightness < LED_OFF) ? LED_OFF : brightness;
-	LED_DBG_LOG("%s: bank %d brightness %d\n", __func__,
+	LED_INFO_LOG("%s: bank %d brightness %d\n", __func__,
 	       ldata->bank, brightness);
 
 	enable = (brightness) ? 1 : 0;
@@ -213,7 +217,7 @@ static void pm8058_drvx_led_brightness_set(struct led_classdev *led_cdev,
 
 	brightness = (brightness > LED_FULL) ? LED_FULL : brightness;
 	brightness = (brightness < LED_OFF) ? LED_OFF : brightness;
-	LED_DBG_LOG("%s: bank %d brightness %d +\n", __func__,
+	LED_INFO_LOG("%s: bank %d brightness %d +\n", __func__,
 	       ldata->bank, brightness);
 
 	enable = (brightness) ? 1 : 0;
@@ -223,7 +227,7 @@ static void pm8058_drvx_led_brightness_set(struct led_classdev *led_cdev,
 	lut_flag = ldata->lut_flag & ~(PM_PWM_LUT_LOOP | PM_PWM_LUT_REVERSE);
 	virtual_key_state = enable;
 	if (flag_hold_virtual_key == 1) {
-		LED_DBG_LOG("%s, Return control by button_backlight flash \n", __func__);
+		LED_INFO_LOG("%s, Return control by button_backlight flash \n", __func__);
 		return;
 	}
 
@@ -267,14 +271,14 @@ static void pm8058_drvx_led_brightness_set(struct led_classdev *led_cdev,
 					   &ldata->led_delayed_work,
 					   msecs_to_jiffies(ldata->duty_time_ms * ldata->duites_size));
 
-			LED_DBG_LOG("%s: bank %d fade out brightness %d -\n", __func__,
+			LED_INFO_LOG("%s: bank %d fade out brightness %d -\n", __func__,
 			ldata->bank, brightness);
 			return;
 		} else
 			pwm_disable(ldata->pwm_led);
 		pm8058_pwm_config_led(ldata->pwm_led, id, mode, 0);
 	}
-	LED_DBG_LOG("%s: bank %d brightness %d -\n", __func__, ldata->bank, brightness);
+	LED_INFO_LOG("%s: bank %d brightness %d -\n", __func__, ldata->bank, brightness);
 }
 
 static ssize_t pm8058_led_blink_store(struct device *dev,
@@ -307,7 +311,7 @@ static ssize_t pm8058_led_blink_store(struct device *dev,
 		pm8058_pwm_config_led(ldata->pwm_led, id, mode,
 				      ldata->out_current);
 
-	LED_DBG_LOG("%s: bank %d blink %d\n", __func__, ldata->bank, val);
+	LED_INFO_LOG("%s: bank %d blink %d\n", __func__, ldata->bank, val);
 
 	enable = (val > 0) ? 1 : 0;
 	if (strcmp(ldata->ldev.name, "charming-led") == 0)
@@ -437,7 +441,7 @@ static ssize_t pm8058_led_off_timer_store(struct device *dev,
 	led_cdev = (struct led_classdev *)dev_get_drvdata(dev);
 	ldata = container_of(led_cdev, struct pm8058_led_data, ldev);
 
-	LED_DBG_LOG("Setting %s off_timer to %d min %d sec\n",
+	LED_INFO_LOG("Setting %s off_timer to %d min %d sec\n",
 					   led_cdev->name, min, sec);
 
 	off_timer = min * 60 + sec;
@@ -716,6 +720,14 @@ static int pm8058_led_probe(struct platform_device *pdev)
 			goto err_register_attr_currents;
 		}
 	}
+
+#ifdef CONFIG_TOUCHSCREEN_CYPRESS_SWEEP2WAKE
+	if (!strcmp(pdata->led_config[2].name, "button-backlight")) {
+		sweep2wake_setleddev(&ldata[2].ldev);
+		printk(KERN_INFO "[sweep2wake]: set led device %s, bank %d\n", pdata->led_config[2].name, ldata[2].bank);
+	}
+#endif
+
 
 	for (i = 0; i < pdata->num_leds; i++) {
 		if (pdata->led_config[i].type == PM8058_LED_DRVX)

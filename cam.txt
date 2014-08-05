@@ -1,0 +1,28 @@
+From 5d060aa76c77cd54393fbf58ae27777fa6cab541 Mon Sep 17 00:00:00 2001
+From: Shantur Rathore <rathore4u@gmail.com>
+Date: Tue, 18 Mar 2014 09:48:24 +0000
+Subject: [PATCH] Fix camera
+
+Change-Id: I32112985aeeac7d4be884593fd30ed9ffa2d20d7
+---
+ drivers/gpu/ion/ion.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/drivers/gpu/ion/ion.c b/drivers/gpu/ion/ion.c
+index e5a6d1d..af2f293 100644
+--- a/drivers/gpu/ion/ion.c
++++ b/drivers/gpu/ion/ion.c
+@@ -1278,6 +1278,10 @@ static long ion_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ 
+ 		if (copy_from_user(&data, (void __user *)arg, sizeof(data)))
+ 			return -EFAULT;
++		
++		if (data.flags == 0x2000000)
++			data.flags = 0x3000000;
++
+ 		data.handle = ion_alloc(client, data.len, data.align,
+ 					     data.flags);
+ 
+-- 
+2.0.3
+
